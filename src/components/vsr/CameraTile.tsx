@@ -65,12 +65,11 @@ export function CameraTile(p: Props) {
   const cbRef = useRef(p);
   cbRef.current = p;
 
-  const update = (patch: Partial<CameraRuntime>) =>
-    setRt((r) => {
-      const n = { ...r, ...patch };
-      cbRef.current.onRuntime(config.id, n);
-      return n;
-    });
+  const lastFrameRef = useRef<number | null>(null);
+  const update = (patch: Partial<CameraRuntime>) => setRt((r) => ({ ...r, ...patch }));
+  useEffect(() => {
+    cbRef.current.onRuntime(config.id, rt);
+  }, [config.id, rt.status, rt.actual, rt.measuredFps, rt.reconnects, rt.error]);
 
   // Open / close the physical device.
   useEffect(() => {
@@ -145,13 +144,12 @@ export function CameraTile(p: Props) {
     const hasRvfc = "requestVideoFrameCallback" in v;
     const onFrame = () => {
       frames++;
+      lastFrameRef.current = Date.now();
       const t = performance.now();
       if (t - windowStart >= 1000) {
         update({ measuredFps: (frames * 1000) / (t - windowStart), lastFrameAt: Date.now() });
         frames = 0;
         windowStart = t;
-      } else {
-        setRt((r) => ({ ...r, lastFrameAt: Date.now() }));
       }
       if (hasRvfc) handle = v.requestVideoFrameCallback(onFrame);
     };
@@ -231,7 +229,7 @@ export function CameraTile(p: Props) {
     if (!p.recording) setRecBytes(0);
   }, [p.recording]);
 
-  const frameAge = rt.lastFrameAt && now ? (now - rt.lastFrameAt) / 1000 : null;
+  const frameAge = lastFrameRef.current && now ? Math.max(0, now - lastFrameRef.current) / 1000 : null;
   const stalled = rt.status === "connected" && frameAge !== null && frameAge > 2;
   const isRec = p.recording && !!stream;
 
