@@ -14,14 +14,14 @@ export interface SegmentInfo {
   segment: number;
   file: string;
   startedAt: string;
-  endedAt?: string;
+  endedAt?: string | undefined;
   bytes: number;
-  endReason?: string;
+  endReason?: string | undefined;
 }
 
 export interface CameraRuntime {
   status: CameraStatus;
-  error?: string;
+  error?: string | undefined;
   actual: ActualSettings;
   measuredFps: number | null;
   lastFrameAt: number | null;
@@ -94,7 +94,7 @@ export function CameraTile(p: Props) {
       .then((ms) => {
         if (cancelled) return ms.getTracks().forEach((t) => t.stop());
         s = ms;
-        const track = ms.getVideoTracks()[0];
+        const track = ms.getVideoTracks()[0]!;
         const st = track.getSettings();
         track.addEventListener("ended", () => {
           if (cancelled) return;
@@ -186,7 +186,7 @@ export function CameraTile(p: Props) {
         .catch((e) => update({ error: `Cannot write to folder: ${e.message}` }));
     }
     const rec = new MediaRecorder(stream, {
-      mimeType: mime || undefined,
+      ...(mime ? { mimeType: mime } : {}),
       videoBitsPerSecond: bitrateFor(config.width, config.height, config.fps),
     });
     let endReason = "stopped by operator";
@@ -214,7 +214,7 @@ export function CameraTile(p: Props) {
         cbRef.current.onSegment(info);
       });
     };
-    const track = stream.getVideoTracks()[0];
+    const track = stream.getVideoTracks()[0]!;
     const onEnded = () => (endReason = "camera disconnected");
     track.addEventListener("ended", onEnded);
     rec.start(1000);

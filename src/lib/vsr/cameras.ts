@@ -15,10 +15,10 @@ export interface CameraConfig {
 }
 
 export interface ActualSettings {
-  width?: number;
-  height?: number;
-  frameRate?: number;
-  label?: string;
+  width?: number | undefined;
+  height?: number | undefined;
+  frameRate?: number | undefined;
+  label?: string | undefined;
 }
 
 export const RESOLUTIONS = [
