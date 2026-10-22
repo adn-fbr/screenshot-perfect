@@ -171,7 +171,7 @@ function Monitor() {
 
   const connected = cams.filter((c) => runtime[c.id]?.status === "connected").length;
   const hourly = cams.reduce((sum, c) => sum + estimateBytes(bitrateFor(c.width, c.height, c.fps), 3600), 0);
-  const sel = cams.find((c) => c.id === selected) ?? cams[0];
+  const sel = cams.find((c) => c.id === selected) ?? cams[0]!;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
